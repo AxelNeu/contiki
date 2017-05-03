@@ -196,7 +196,6 @@ PROCESS_THREAD(udp_server_process, ev, data)
 
 #if WITH_ORCHESTRA
   orchestra_init();
-  PRINTF("using Orchestra\n");
 #endif /* WITH_ORCHESTRA */
 
   while(1) {

@@ -56,12 +56,9 @@
 #define DEBUG DEBUG_FULL
 #include "net/ip/uip-debug.h"
 
-#define MULTIPLIER 1
 
-#define START_INTERVAL					(15 * CLOCK_SECOND)
-#define CLOCK_QUARTER_SECOND		(CLOCK_SECOND / 4)
-#define SEND_INTERVAL						(MULTIPLIER * CLOCK_QUARTER_SECOND)
-#define SEND_TIME								(random_rand() % (SEND_INTERVAL))
+#define START_INTERVAL					(60 * CLOCK_SECOND)
+#define SEND_INTERVAL						(CLOCK_SECOND)
 #define MAX_PAYLOAD_LEN					30
 
 static struct uip_udp_conn *client_conn;
@@ -221,12 +218,12 @@ PROCESS_THREAD(udp_client_process, ev, data)
 #endif /* WITH_ORCHESTRA */
 /*---------------------------------------------------------------------------*/
 
-  etimer_set(&periodic, SEND_INTERVAL);
+  etimer_set(&periodic, START_INTERVAL);
   while(1) {
     PROCESS_YIELD();
 
     if(etimer_expired(&periodic)) {
-      etimer_reset(&periodic);
+    	etimer_reset_with_new_interval(&periodic, SEND_INTERVAL);
       if(tsch_is_associated) {
       	ctimer_set(&backoff_timer, 0, send_packet, NULL);
       }

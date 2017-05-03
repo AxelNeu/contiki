@@ -37,41 +37,65 @@ import org.contikios.cooja.*;
  *
  * @author Fredrik Osterlind
  */
-@ClassDescription("Ellipse positioning")
+@ClassDescription("Concentric positioning")
 public class EllipsePositioner extends Positioner {
 
-  private double xRadius, yRadius, xMiddle, yMiddle;
-  private double zValue, deltaAngle, currentAngle;
+	private double distance, xMiddle, yMiddle;
+	private double zValue, deltaAngle, currentAngle;
+	private int totalMotesOnInnerCircles, index, currentCircle, motesOnThisCircle;
+	private boolean firstMoteOnCircle;
 
-  /**
-   * Creates a circle positioner.
-   * @param totalNumberOfMotes Total number of motes
-   * @param startX X interval start
-   * @param endX X interval end
-   * @param startY Y interval start
-   * @param endY Y interval end
-   * @param startZ Z interval start
-   * @param endZ Z interval end
-   */
-  public EllipsePositioner(int totalNumberOfMotes,
+	/**
+	* Creates a circle positioner.
+	* @param totalNumberOfMotes Total number of motes
+	* @param startX X interval start
+	* @param endX X interval end
+	* @param startY Y interval start
+	* @param endY Y interval end
+	* @param startZ Z interval start
+	* @param endZ Z interval end
+	*/
+  	public EllipsePositioner(int totalNumberOfMotes,
 			   double startX, double endX,
 			   double startY, double endY,
 			   double startZ, double endZ) {
-    xRadius = (endX - startX) / 2.0;
-    yRadius = (endY - startY) / 2.0;
-    xMiddle = startX + xRadius;
-    yMiddle = startY + yRadius;
-    zValue = startZ;
-    deltaAngle = 2*Math.PI / (double) totalNumberOfMotes;
-    currentAngle = 0;
-  }
+		currentCircle = 0;
+		motesOnThisCircle= 1;
+		totalMotesOnInnerCircles = 0;
+		index = 0;
+		distance = (endX - startX) / 2.0;
+		xMiddle = startX + distance;
+		yMiddle = startY + distance;
+		zValue = startZ;
+		deltaAngle = 0;
+		currentAngle = 0;
+		firstMoteOnCircle = true;
+  	}
 
-  public double[] getNextPosition() {
-    currentAngle += deltaAngle;
-    return new double[] {
-        xMiddle + xRadius * Math.cos(currentAngle),
-        yMiddle + yRadius * Math.sin(currentAngle),
-        zValue};
+  	public double[] getNextPosition() {
+    
+		if (index - totalMotesOnInnerCircles >= motesOnThisCircle) {
+			// start new circle
+			currentCircle++;
+			totalMotesOnInnerCircles += motesOnThisCircle;
+			motesOnThisCircle = (int) (2.0*Math.PI * currentCircle);
+			deltaAngle = 2.0*Math.PI / motesOnThisCircle;
+			currentAngle = 0;
+			firstMoteOnCircle = true;
+		} else {
+			firstMoteOnCircle = false;
+		}
+
+		double radius = currentCircle * distance;
+		if(!firstMoteOnCircle) {
+			currentAngle += deltaAngle;
+		}
+
+		index++;
+		return new double[] {
+			xMiddle + radius * Math.cos(currentAngle),
+			yMiddle + radius * Math.sin(currentAngle),
+			zValue};
   }
 
 }
